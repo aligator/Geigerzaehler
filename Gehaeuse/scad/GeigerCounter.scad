@@ -3,31 +3,42 @@ screwHolesExtra=0.15;
 $fs=0.1;
 $fa=2;
 
-module geigerBody() {   
-    height=50;
-    width=116;
-    depth=71;
-    borderWidth=3;
-    spacerHeight=2;
-    spacerDia=6;
-    spacerPadding=1;
-    screwDia=3;
+height=50;
+width=116;
+depth=71;
+spacerHeight=2;
+spacerDia=6;
+spacerPadding=1;
+screwDia=3;
 
-    batteryWidth=56;
-    batteryDepth=100;
-    batteryHeight=23;
-    
+borderWidth=3;
+
+batteryWidth=56;
+batteryDepth=100;
+batteryHeight=23;
+batteryCapHeight=3;
+batteryScrewDia=3;
+batteryScrewSize=8;
+
+module batteryScrewHole() {
+    translate([batteryScrewSize/2, batteryScrewSize/2, borderWidth])
+        cylinder(h=batteryHeight, d=batteryScrewDia);
+}
+
+
+module batteryScrew() {
+    difference() {
+        cube([batteryScrewSize, batteryScrewSize, batteryHeight]);
+        batteryScrewHole();
+    }
+}
+
+module geigerBody() {
     // Some extra padding in X axis
     spacerPaddingX=-0.2;
 
     module box() {
-        batteryScrewSize=8;
-        module batteryScrew() {
-            difference() {
-                cube([batteryScrewSize, batteryScrewSize, batteryHeight]);
-                #translate([batteryScrewSize/2, batteryScrewSize/2, borderWidth]) cylinder(h=batteryHeight, d=screwDia);
-            }
-        }
+        
             
         difference() {
 
@@ -137,4 +148,17 @@ module geigerBody() {
     }
 }
 
-geigerBody();
+module geigerBattery() {
+    difference() {
+        cube([batteryWidth, batteryDepth, batteryCapHeight]);
+        translate([borderWidth, borderWidth, -borderWidth-1]) batteryScrewHole();
+        translate([batteryWidth-borderWidth-batteryScrewSize, borderWidth, -borderWidth-1]) batteryScrewHole();
+        translate([batteryWidth-borderWidth-batteryScrewSize, batteryDepth-borderWidth-batteryScrewSize, -borderWidth-1]) batteryScrewHole();
+        translate([borderWidth, batteryDepth-borderWidth-batteryScrewSize, -borderWidth-1]) batteryScrewHole();
+    }
+}
+
+translate([100, 0, 0])
+    geigerBody();
+
+geigerBattery();
