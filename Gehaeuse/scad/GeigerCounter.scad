@@ -11,14 +11,31 @@ spacerDia=6;
 spacerPadding=1;
 screwDia=3;
 
+// Some extra padding in X axis (to be more like the orignal)
+spacerPaddingX=-0.2;
+
 borderWidth=3;
 
 batteryWidth=56;
 batteryDepth=100;
 batteryHeight=23;
-batteryCapHeight=3;
-batteryScrewDia=3;
+batteryCapHeight=borderWidth;
+batteryScrewDia=screwDia;
 batteryScrewSize=8;
+
+displayScrewDia=3.2;
+displaySpacerPositionX=11.25;
+displaySpacerPositionY=8;
+displaySpacerHeight=7;
+displaySpacerDia=10;
+displayCenterHoleWidth=98;
+displayCenterHoleDepth=41;
+displayHolderHoleDia=3.2;
+displayHolderHoleDiaInner=screwDia;
+displayHolderHoleFromTop=5;
+displayHolderWidth=5;
+displayHolderDepth=20;
+displayHolderHeight=displayHolderHoleFromTop*2;
 
 module batteryScrewHole() {
     translate([batteryScrewSize/2, batteryScrewSize/2, borderWidth])
@@ -26,22 +43,23 @@ module batteryScrewHole() {
 }
 
 
-module batteryScrew() {
-    difference() {
-        cube([batteryScrewSize, batteryScrewSize, batteryHeight]);
-        batteryScrewHole();
-    }
-}
-
 module geigerBody() {
-    // Some extra padding in X axis
-    spacerPaddingX=-0.2;
-
+    module screw() {
+        translate([0, 0, -1])
+        cylinder(h=spacerHeight+borderWidth+2, d=screwDia);
+    }
+    module screwSpacer() {
+        translate([0, 0, borderWidth]) cylinder(h=spacerHeight, d=spacerDia);
+    }
     module box() {
+        module batteryScrew() {
+            difference() {
+                cube([batteryScrewSize, batteryScrewSize, batteryHeight]);
+                batteryScrewHole();
+            }
+        }
         
-            
         difference() {
-
             union() {
                 cube([width, depth, height]);
                 
@@ -79,9 +97,7 @@ module geigerBody() {
                 translate([borderWidth, batteryDepth-borderWidth-batteryScrewSize, 0]) batteryScrew();
             }
         
-        module screwSpacer() {
-            translate([0, 0, borderWidth]) cylinder(h=spacerHeight, d=spacerDia);
-        }
+        
         
         translate([spacerPadding + spacerPaddingX + borderWidth + spacerDia/2, spacerPadding + borderWidth + spacerDia/2, 0]) screwSpacer();
         translate([width - spacerDia/2-borderWidth - spacerPadding - spacerPaddingX, spacerPadding + borderWidth + spacerDia/2, 0]) screwSpacer();
@@ -90,11 +106,6 @@ module geigerBody() {
     };
     
     module holes() {
-        module screw() {
-            translate([0, 0, -1])
-            cylinder(h=spacerHeight+borderWidth+2, d=screwDia);
-        }
-        
         translate([spacerPadding + spacerPaddingX + borderWidth + spacerDia/2, spacerPadding + borderWidth + spacerDia/2, 0]) screw();
         translate([width - spacerDia/2-borderWidth - spacerPadding - spacerPaddingX, spacerPadding + borderWidth + spacerDia/2, , 0]) screw();
         translate([width - spacerDia/2-borderWidth - spacerPadding - spacerPaddingX, depth - borderWidth - spacerDia/2 - spacerPadding, 0]) screw();
@@ -120,11 +131,10 @@ module geigerBody() {
         translate([2, headphoneHoleY-headphoneHoleDia/2+borderWidth, borderWidth+headphoneHoleZ])
         cube([borderWidth, headphoneHoleDia, height]);
         
-        // lcd holder holes (one hole that goes through both sides)
-        lcdHolderHoleDia=3.2;
-        lcdHolderHoleFromTop=5;
-        translate([-1, depth/2, borderWidth+height-borderWidth-lcdHolderHoleFromTop])
-        rotate([0, 90, 0]) cylinder(d=lcdHolderHoleDia, h=width+2);
+        // display holder holes (one hole that goes through both sides)
+
+        translate([-1, depth/2, borderWidth+height-borderWidth-displayHolderHoleFromTop])
+        rotate([0, 90, 0]) cylinder(d=displayHolderHoleDia, h=width+2);
         
         // tubeCutout
         tubeCutoutWidth=80;
@@ -158,7 +168,52 @@ module geigerBattery() {
     }
 }
 
-translate([100, 0, 0])
+module geigerDisplay() {
+    module displayScrew() {
+        translate([0, 0, -1])
+        cylinder(h=displaySpacerHeight+borderWidth+2, d=displayScrewDia);
+    }
+    module displayScrewSpacer() {
+        translate([0, 0, borderWidth]) cylinder(h=displaySpacerHeight, d=displaySpacerDia);
+    }
+    
+    difference() {
+        union() {
+            translate([displaySpacerPositionX, displaySpacerPositionY, 0]) displayScrewSpacer();
+            translate([width - displaySpacerPositionX, displaySpacerPositionY, 0]) displayScrewSpacer();
+            translate([width - displaySpacerPositionX, depth - displaySpacerPositionY, 0]) displayScrewSpacer();
+            translate([displaySpacerPositionX, depth - displaySpacerPositionY, 0]) displayScrewSpacer();
+            cube([width, depth, borderWidth]);
+        }
+        translate([displaySpacerPositionX, displaySpacerPositionY, 0]) displayScrew();
+        translate([width - displaySpacerPositionX, displaySpacerPositionY, 0]) displayScrew();
+        translate([width - displaySpacerPositionX, depth - displaySpacerPositionY, 0]) displayScrew();
+        translate([displaySpacerPositionX, depth - displaySpacerPositionY, 0]) displayScrew();
+        
+        // center hole
+        translate([width/2 - displayCenterHoleWidth/2, depth/2 - displayCenterHoleDepth/2, -1])
+            cube([displayCenterHoleWidth, displayCenterHoleDepth, borderWidth+2]);
+    }
+            
+    // side holder
+    module displayHolder() {
+        difference() {
+            cube([displayHolderWidth, displayHolderDepth, displayHolderHeight]);
+            translate([-1, displayHolderDepth/2, displayHolderHoleFromTop]) {
+                rotate([0, 90, 0]) cylinder(d=displayHolderHoleDiaInner, h=width+2);
+            }
+        }
+    }
+    translate([borderWidth, depth/2 - displayHolderDepth/2, borderWidth])
+        displayHolder();
+    translate([width-borderWidth-displayHolderWidth, depth/2 - displayHolderDepth/2, borderWidth])
+        displayHolder();
+}
+
+translate([200, 0, 0])
     geigerBody();
 
-geigerBattery();
+translate([0, 100, 0])
+    geigerBattery();
+
+geigerDisplay();
