@@ -1,3 +1,5 @@
+use <ESP8266Models.scad>
+
 screwHolesExtra=0.15;
 
 $fs=0.1;
@@ -37,11 +39,13 @@ displayHolderWidth=5;
 displayHolderDepth=20;
 displayHolderHeight=displayHolderHoleFromTop*2;
 
+controllerWidth=100;
+controllerDepth=65;
+
 module batteryScrewHole() {
     translate([batteryScrewSize/2, batteryScrewSize/2, borderWidth])
         cylinder(h=batteryHeight, d=batteryScrewDia);
 }
-
 
 module geigerBody() {
     module screw() {
@@ -168,11 +172,20 @@ module geigerBattery() {
     }
 }
 
+module displayScrew() {
+    translate([0, 0, -1])
+    cylinder(h=displaySpacerHeight+borderWidth+2, d=displayScrewDia);
+}
+
+module displayHoles() {
+    translate([displaySpacerPositionX, displaySpacerPositionY, 0]) displayScrew();
+    translate([width - displaySpacerPositionX, displaySpacerPositionY, 0]) displayScrew();
+    translate([width - displaySpacerPositionX, depth - displaySpacerPositionY, 0]) displayScrew();
+    translate([displaySpacerPositionX, depth - displaySpacerPositionY, 0]) displayScrew();
+}
+
 module geigerDisplay() {
-    module displayScrew() {
-        translate([0, 0, -1])
-        cylinder(h=displaySpacerHeight+borderWidth+2, d=displayScrewDia);
-    }
+    
     module displayScrewSpacer() {
         translate([0, 0, borderWidth]) cylinder(h=displaySpacerHeight, d=displaySpacerDia);
     }
@@ -185,10 +198,7 @@ module geigerDisplay() {
             translate([displaySpacerPositionX, depth - displaySpacerPositionY, 0]) displayScrewSpacer();
             cube([width, depth, borderWidth]);
         }
-        translate([displaySpacerPositionX, displaySpacerPositionY, 0]) displayScrew();
-        translate([width - displaySpacerPositionX, displaySpacerPositionY, 0]) displayScrew();
-        translate([width - displaySpacerPositionX, depth - displaySpacerPositionY, 0]) displayScrew();
-        translate([displaySpacerPositionX, depth - displaySpacerPositionY, 0]) displayScrew();
+        displayHoles();
         
         // center hole
         translate([width/2 - displayCenterHoleWidth/2, depth/2 - displayCenterHoleDepth/2, -1])
@@ -210,10 +220,43 @@ module geigerDisplay() {
         displayHolder();
 }
 
+module controllerFrameBase() {
+    difference() {  
+        cube([controllerWidth, controllerDepth, borderWidth]);
+        // Base the controller board holes on the display-holder hole position
+        translate([-(width - controllerWidth) / 2, -(depth - controllerDepth) / 2, 0])
+            displayHoles();
+    }
+}
+
+module mcuFrame() {
+    mcuCutoutWidth=59;
+    mcuCutoutDepth=53;
+    
+    difference() {  
+        controllerFrameBase();
+        translate([controllerWidth-mcuCutoutWidth, controllerDepth-mcuCutoutDepth, -1]) {
+            cube([mcuCutoutWidth+1, mcuCutoutDepth+1, borderWidth+2]);
+        }
+        
+        translate([24, 35, 0]) {
+            for (i = [0 : 3]) {
+                NodeMCU_LV3_HolesLocate(i) {
+                    translate([0, 0, -1])
+                        cylinder(h=5, d=3);
+                }
+            }
+        }
+    }
+}
+
 translate([200, 0, 0])
     geigerBody();
 
 translate([0, 100, 0])
     geigerBattery();
 
-geigerDisplay();
+translate([0, -100, 0])
+    geigerDisplay();
+
+!mcuFrame();
