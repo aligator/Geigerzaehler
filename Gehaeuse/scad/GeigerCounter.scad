@@ -42,6 +42,10 @@ displayHolderHeight=displayHolderHoleFromTop*2;
 controllerWidth=100;
 controllerDepth=65;
 
+distanceDiaInner=3.5;
+distanceDiaOuter=10;
+distanceHeight=3;
+
 module batteryScrewHole() {
     translate([batteryScrewSize/2, batteryScrewSize/2, borderWidth])
         cylinder(h=batteryHeight, d=batteryScrewDia);
@@ -250,6 +254,13 @@ module mcuFrame() {
     }
 }
 
+module distance() {
+    difference() {
+        cylinder(d=distanceDiaOuter, h=distanceHeight);
+        translate([0, 0, -1]) cylinder(d=distanceDiaInner, h=distanceHeight+2);
+    }
+}
+
 translate([200, 0, 0])
     geigerBody();
 
@@ -259,4 +270,7 @@ translate([0, 100, 0])
 translate([0, -100, 0])
     geigerDisplay();
 
-!mcuFrame();
+translate([100, -100, 0])
+    mcuFrame();
+
+distance();
